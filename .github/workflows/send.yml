@@ -1,24 +1,18 @@
-name: Send to Feishu                                                                                        
-  on:                                                                                                         
-    repository_dispatch:                                                                                      
-      types: [send_digest]                                                                                    
-                  
-  jobs:                                                                                                       
-    send:         
+  name: Send to Feishu                                                                                          
+  "on":           
+    repository_dispatch:
+      types: [send_digest]
+                                                                                                                
+  jobs:
+    send:                                                                                                       
       runs-on: ubuntu-latest
       steps:
         - name: Send digest to Feishu
-          env:                                                                                                
+          env:
             DIGEST: ${{ github.event.client_payload.digest }}
-          run: |                                                                                              
-            python3 - <<'PYEOF'
-  import json, urllib.request, os                                                                             
-  digest = os.environ["DIGEST"]
-  payload = json.dumps({"msg_type": "text", "content": {"text": digest}}).encode()                            
-  req = urllib.request.Request(                                                                               
-      "https://open.feishu.cn/open-apis/bot/v2/hook/ba66eab5-cc20-42ec-ae80-2f0ab24866a8",                    
-      data=payload,                                                                                           
-      headers={"Content-Type": "application/json"}
-  )                                                                                                           
-  print(urllib.request.urlopen(req).read().decode())
-  PYEOF
+          run: |
+            PAYLOAD=$(jq -n --arg text "$DIGEST" '{"msg_type":"text","content":{"text":$text}}')
+            curl -s -X POST \                                                                                   
+              -H "Content-Type: application/json" \
+              -d "$PAYLOAD" \                                                                                   
+              "https://open.feishu.cn/open-apis/bot/v2/hook/ba66eab5-cc20-42ec-ae80-2f0ab24866a8"
