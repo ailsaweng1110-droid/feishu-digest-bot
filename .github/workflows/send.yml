@@ -1,0 +1,20 @@
+  name: Send to Feishu                                                                                        
+  on:             
+    repository_dispatch:
+      types: [send_digest]
+                                                                                                              
+  jobs:
+    send:                                                                                                     
+      runs-on: ubuntu-latest
+      steps:
+        - name: Send digest to Feishu
+          run: |                                                                                              
+            python3 -c "
+  import json, urllib.request                                                                                 
+  digest = '''${{ github.event.client_payload.digest }}'''
+  payload = json.dumps({'msg_type': 'text', 'content': {'text': digest}}).encode()
+  req =                                                                                                       
+  urllib.request.Request('https://open.feishu.cn/open-apis/bot/v2/hook/ba66eab5-cc20-42ec-ae80-2f0ab24866a8', 
+  data=payload, headers={'Content-Type': 'application/json'})                                                 
+  print(urllib.request.urlopen(req).read().decode())                                                          
+  "  
